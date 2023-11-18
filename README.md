@@ -47,7 +47,7 @@ Then run `mix deps.get` to fetch the dependencies.
   ```elixir
   config :live_guard, :unauthorized_handler, {MyModule, :my_handle_unauthorized}
   ```
-  It called with inputs, first is a `socket`, second is `is_redirect`.
+  It called with 2 inputs, first is a `socket`, second is `is_redirect`.
 
 ## Usage
 
