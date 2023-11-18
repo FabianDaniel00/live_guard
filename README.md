@@ -104,8 +104,12 @@ end
 For now you should ask, _okay but how it will know how to protect the LiveView lifecycle stages?_
 
 You need to implement `allowed?/4` protocol functions.
-The first input of `allowed/4` is the user, the second is the LiveView module, the third is the LiveView lifecycle stage and the last is LiveView lifecycle stage inputs. In this way you can pattern match to your needings.
+The first input of `allowed/4` is the user, the second is the LiveView module, the third is the LiveView lifecycle stage and the last is LiveView lifecycle stage inputs. In this way you can pattern match to your needings. You can put this file anywhere but I recommend `/lib/my_app_web/live/abilities.ex`.
+It must return boolean.
+
 ```elixir
+# /lib/my_app_web/live/abilities.ex
+
 defimpl LiveGuard.Allowed, for: User do
   @before_compile {LiveGuard, :before_compile_allowed}
 
@@ -136,11 +140,14 @@ end
 #### Optimization
 
 By default if you use the `on_mount/4` callback of LiveGuard will attach hooks to all attachable LiveView lifecycle stages (`:handle_params`, `:handle_event`, `:handle_info` and `:after_render`).
-If you need to protect for example only the `:handle_event` LiveView lifecycle stage for an individual LiveView module you can use this function.
+If you need to protect for example only the `:handle_event` LiveView lifecycle stage for an individual LiveView module you can use this function. You can put this file anywhere but I recommend `/lib/my_app_web/live/guarded_stages.ex`.
+It must return a list of valid attachable LiveView lifecycle stages.
 
 ##### Example
 
 ```elixir
+# /lib/my_app_web/live/guarded_stages.ex
+
 defimpl LiveGuard.GuardedStages, for: Atom do
   @before_compile {LiveGuard, :before_compile_guarded_stages}
 
