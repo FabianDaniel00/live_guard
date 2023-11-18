@@ -36,7 +36,7 @@ Then run `mix deps.get` to fetch the dependencies.
 - `:unauthorized_handler`
 
   This function handles unauthorized LiveView lifecycle stages.
-  It's called when the `allowed/4` function return `false`.
+  It's called when the `allowed?/4` function return `false`.
 
   By default it will put an error flash message with text "_You don't have permission to do that!_".
 
@@ -104,7 +104,7 @@ end
 For now you should ask, _okay but how it will know how to protect the LiveView lifecycle stages?_
 
 You need to implement `allowed?/4` protocol functions.
-The first input of `allowed/4` is the user, the second is the LiveView module, the third is the LiveView lifecycle stage and the last is LiveView lifecycle stage inputs. In this way you can pattern match to your needings. You can put this file anywhere but I recommend `/lib/my_app_web/live/abilities.ex`.
+The first input of `allowed?/4` is the user, the second is the LiveView module, the third is the LiveView lifecycle stage and the last is LiveView lifecycle stage inputs. In this way you can pattern match to your needings. You can put this file anywhere but I recommend `/lib/my_app_web/live/abilities.ex`.
 It must return boolean.
 
 ```elixir
