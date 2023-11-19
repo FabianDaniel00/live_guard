@@ -8,8 +8,8 @@ defprotocol LiveGuard.Allowed do
   @doc """
   By this function you can protect the LiveView lifecycle stages.
 
-  You can pattern match by the user, LiveView module, LiveView lifecycle stage and LiveView lifecycle stage inputs.
-  You can put this file anywhere but I recommend `/lib/my_app_web/live/abilities.ex`.
+  You can pattern match by the **user**, **LiveView module**, **LiveView lifecycle stage** and **LiveView lifecycle stage inputs**.
+  You can put this file anywhere but `/lib/my_app_web/live/abilities.ex` is recommended.
   It must return boolean.
 
   ## Example
@@ -26,10 +26,10 @@ defprotocol LiveGuard.Allowed do
           :handle_event,
           {"delete_item", _params, _socket}
         )
-        when role in [:customer],
+        when role in [:viewer, :customer],
         do: false
 
-    # other `allowed?/4` functions
+    # other `allowed?/4` functions...
   end
   ```
   > Note: As you can see, you don't have to define catch-all `allowed?/4` function because we used `@before_compile {LiveGuard, :before_compile_allowed}` hook. It returns `true`.
@@ -39,16 +39,22 @@ end
 
 defprotocol LiveGuard.GuardedStages do
   @moduledoc """
+  #### Optional
+
   By this protocol you can implement `guarded_stages/1` functions.
   """
 
   @doc """
+  #### Optional
+
   This function is for optimization.
 
-  By default if you use the `on_mount/4` callback of LiveGuard will attach hooks to all attachable LiveView lifecycle stages (`:handle_params`, `:handle_event`, `:handle_info` and `:after_render`).
+  By default if you use the `on_mount/4` callback of LiveGuard, it will attach hooks to all attachable LiveView lifecycle stages (`:handle_params`, `:handle_event`, `:handle_info` and `:after_render`).
+
   If you need to protect for example only the `:handle_event` LiveView lifecycle stage for an individual LiveView module you can use this function.
-  You can put this file anywhere but I recommend `/lib/my_app_web/live/guarded_stages.ex`.
-  It must return a list of valid attachable LiveView lifecycle stages.
+  You can put this file anywhere but `/lib/my_app_web/live/guarded_stages.ex` is recommended.
+
+  It must return a list of [valid attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4).
 
   ## Example
 
@@ -60,7 +66,7 @@ defprotocol LiveGuard.GuardedStages do
 
     def guarded_stages(MyModuleLive), do: [:handle_event]
 
-    # other `guarded_stages?/1` functions
+    # other `guarded_stages?/1` functions...
   end
   ```
   In this case it will only attach hook to `:handle_event` LiveView lifecycle stage.

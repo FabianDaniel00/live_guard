@@ -7,7 +7,7 @@ defmodule LiveGuard.Helpers do
 
   @doc """
   This function handles unauthorized LiveView lifecycle stages.
-  It's called when the `allowed?/4` function return `false`.
+  It's called when the [`allowed?/4`](/LiveGuard.Allowed#allowed?/4) function returns `false`.
 
   By default it will put an error flash message with text "_You don't have permission to do that!_".
 
@@ -18,8 +18,9 @@ defmodule LiveGuard.Helpers do
   ```elixir
   config :live_guard, :unauthorized_handler, {MyModule, :my_handle_unauthorized}
   ```
+  It's called with 2 inputs, first is a `socket`, second is `is_redirect` (boolean).
   """
-  def handle_unauthorized(socket, false),
+  def handle_unauthorized(socket, false = _is_redirect),
     do: put_flash(socket, :error, "You don't have permission to do that!")
 
   def handle_unauthorized(socket, _is_redirect),

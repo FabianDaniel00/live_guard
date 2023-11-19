@@ -12,6 +12,8 @@ defmodule LiveGuard.MixProject do
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       package: [
+        files:
+          ~w(lib test .formatter.exs .gitignore CHANGELOG.md LICENSE mix.exs mix.lock README.md),
         links: %{"GitHub" => "https://github.com/FabianDaniel00/live_guard"},
         licenses: ["MIT"]
       ],

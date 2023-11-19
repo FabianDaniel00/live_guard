@@ -2,7 +2,7 @@ defmodule LiveGuard do
   @moduledoc """
   A simple module with `on_mount/4` callback. This can used in [Phoenix LiveView](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#on_mount/1) applications.
   The main goal is to protect the Phoenix LiveView lifecycle stages easily.
-  It uses the [`attach_hook/4`](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4) function to authorize the events in the LiveView.
+  It uses the [`attach_hook/4`](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4) function to authorize all attachable LiveView lifecycle stages.
   """
 
   import Phoenix.LiveView, only: [attach_hook: 4]
@@ -74,9 +74,9 @@ defmodule LiveGuard do
     do: @unauthorized_handler |> elem(0) |> apply(elem(@unauthorized_handler, 1), params)
 
   @doc """
-  This macro can bu used with [`@before_compile`](https://hexdocs.pm/elixir/Module.html#module-before_compile) hook.
+  This macro can be used with [`@before_compile`](https://hexdocs.pm/elixir/Module.html#module-before_compile) hook.
 
-  It will add a catch-all `allowed?/4` function returning `true` to the end the module.
+  It will add a catch-all `allowed?/4` function returning `true`, to the end the module.
 
   ## Example
 
@@ -92,10 +92,9 @@ defmodule LiveGuard do
     do: quote(do: def(allowed?(_user, _live_view_module, _stage, _stage_inputs), do: true))
 
   @doc """
-  This macro can bu used with [`@before_compile`](https://hexdocs.pm/elixir/Module.html#module-before_compile) hook.
+  This macro can be used with [`@before_compile`](https://hexdocs.pm/elixir/Module.html#module-before_compile) hook.
 
-  It will add a catch-all `guarded_stages/1` function returning all the attachable stages to the end the module.
-  You can check that [here](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4).
+  It will add a catch-all `guarded_stages/1` function returning all the [valid attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4), to the end the module.
 
   ## Example
 
