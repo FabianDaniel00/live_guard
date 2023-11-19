@@ -47,37 +47,40 @@ defmodule LiveGuard do
                 hook_fn(stage)
               )
             end
-          )}) || {:halt, unauthorized_handler([socket, true])}
+          )}) || {:halt, unauthorized_handler({socket, true})}
 
   @spec hook_fn(:handle_params | :handle_event | :handle_info | :after_render) ::
           (... -> {:cont | :halt, Socket.t()})
   defp hook_fn(:handle_params = stage),
     do: fn params, uri, socket ->
       (allowed?(socket.assigns[@current_user], socket.view, stage, {params, uri, socket}) &&
-         {:cont, socket}) || {:halt, unauthorized_handler([socket, true])}
+         {:cont, socket}) || {:halt, unauthorized_handler({socket, true})}
     end
 
   defp hook_fn(:handle_event = stage),
     do: fn event, params, socket ->
       (allowed?(socket.assigns[@current_user], socket.view, stage, {event, params, socket}) &&
-         {:cont, socket}) || {:halt, unauthorized_handler([socket, false])}
+         {:cont, socket}) || {:halt, unauthorized_handler({socket, false})}
     end
 
   defp hook_fn(:handle_info = stage),
     do: fn msg, socket ->
       (allowed?(socket.assigns[@current_user], socket.view, stage, {msg, socket}) &&
-         {:cont, socket}) || {:halt, unauthorized_handler([socket, false])}
+         {:cont, socket}) || {:halt, unauthorized_handler({socket, false})}
     end
 
   defp hook_fn(:after_render = stage),
     do: fn socket ->
       (allowed?(socket.assigns[@current_user], socket.view, stage, {socket}) && socket) ||
-        unauthorized_handler([socket, true])
+        unauthorized_handler({socket, true})
     end
 
-  @spec unauthorized_handler([...]) :: Socket.t()
-  defp unauthorized_handler(params),
-    do: @unauthorized_handler |> elem(0) |> apply(elem(@unauthorized_handler, 1), params)
+  @spec unauthorized_handler({Socket.t(), boolean()}) :: Socket.t()
+  defp unauthorized_handler({socket, is_redirect}),
+    do:
+      @unauthorized_handler
+      |> elem(0)
+      |> apply(elem(@unauthorized_handler, 1), [socket, is_redirect])
 
   @doc """
   This macro can be used with [`@before_compile`](https://hexdocs.pm/elixir/Module.html#module-before_compile) hook.
