@@ -9,7 +9,8 @@ defmodule LiveGuard do
   import LiveGuard.Allowed, only: [allowed?: 4]
   import LiveGuard.GuardedStages, only: [guarded_stages: 1]
 
-  alias LiveGuard.Helpers
+  alias LiveGuard.{Helpers, GuardedStages}
+  alias Phoenix.LiveView.Socket
 
   @attachable_lifecycle_stages [:handle_params, :handle_event, :handle_info, :after_render]
 
@@ -23,6 +24,8 @@ defmodule LiveGuard do
   @doc """
   You can find the documentation of `on_mount/1` [here](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#on_mount/1).
   """
+
+  @spec on_mount(:default, map(), map(), Socket.t()) :: {:cont | :halt, Socket.t()}
   def on_mount(:default, params, session, socket),
     do:
       (allowed?(
@@ -33,7 +36,7 @@ defmodule LiveGuard do
        ) &&
          {:cont,
           Enum.reduce(
-            (LiveGuard.GuardedStages.impl_for(nil) && guarded_stages(socket.view)) ||
+            (GuardedStages.impl_for(:atom) && guarded_stages(socket.view)) ||
               @attachable_lifecycle_stages,
             socket,
             fn stage, socket ->
@@ -46,6 +49,8 @@ defmodule LiveGuard do
             end
           )}) || {:halt, unauthorized_handler([socket, true])}
 
+  @spec hook_fn(:handle_params | :handle_event | :handle_info | :after_render) ::
+          (... -> {:cont | :halt, Socket.t()})
   defp hook_fn(:handle_params = stage),
     do: fn params, uri, socket ->
       (allowed?(socket.assigns[@current_user], socket.view, stage, {params, uri, socket}) &&
@@ -70,6 +75,7 @@ defmodule LiveGuard do
         unauthorized_handler([socket, true])
     end
 
+  @spec unauthorized_handler([...]) :: Socket.t()
   defp unauthorized_handler(params),
     do: @unauthorized_handler |> elem(0) |> apply(elem(@unauthorized_handler, 1), params)
 
@@ -88,6 +94,8 @@ defmodule LiveGuard do
   end
   ```
   """
+
+  @spec before_compile_allowed(map()) :: tuple()
   defmacro before_compile_allowed(_env),
     do: quote(do: def(allowed?(_user, _live_view_module, _stage, _stage_inputs), do: true))
 
@@ -106,6 +114,8 @@ defmodule LiveGuard do
   end
   ```
   """
+
+  @spec before_compile_guarded_stages(map()) :: tuple()
   defmacro before_compile_guarded_stages(_env),
     do:
       quote(do: def(guarded_stages(_live_view_module), do: unquote(@attachable_lifecycle_stages)))

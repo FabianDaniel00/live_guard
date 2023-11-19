@@ -12,6 +12,7 @@ defmodule LiveGuard.MixProject do
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       package: [
+        maintainers: ["Daniel Fabian"],
         files:
           ~w(lib test .formatter.exs .gitignore CHANGELOG.md LICENSE mix.exs mix.lock README.md),
         links: %{"GitHub" => "https://github.com/FabianDaniel00/live_guard"},
@@ -23,7 +24,7 @@ defmodule LiveGuard.MixProject do
       docs: [
         # The main page in the docs
         main: "LiveGuard",
-        extras: ["README.md"]
+        extras: ["README.md", "CHANGELOG.md"]
       ]
     ]
   end

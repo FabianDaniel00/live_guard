@@ -34,18 +34,27 @@ defprotocol LiveGuard.Allowed do
   ```
   > Note: As you can see, you don't have to define catch-all `allowed?/4` function because we used `@before_compile {LiveGuard, :before_compile_allowed}` hook. It returns `true`.
   """
+
+  @typedoc "A user struct."
+  @type t() :: struct()
+  @spec allowed?(
+          struct(),
+          module(),
+          :mount | :handle_params | :handle_event | :handle_info | :after_render,
+          tuple()
+        ) :: boolean()
   def allowed?(user, live_view_module, stage, stage_inputs)
 end
 
 defprotocol LiveGuard.GuardedStages do
   @moduledoc """
-  #### Optional
+  #### _Optional_
 
   By this protocol you can implement `guarded_stages/1` functions.
   """
 
   @doc """
-  #### Optional
+  #### _Optional_
 
   This function is for optimization.
 
@@ -72,5 +81,11 @@ defprotocol LiveGuard.GuardedStages do
   In this case it will only attach hook to `:handle_event` LiveView lifecycle stage.
   > Note: As you can see, you don't have to define catch-all `guarded_stages/1` function because we used `@before_compile {LiveGuard, :before_compile_guarded_stages}` hook. It returns all the attachable LiveView lifecycle stages.
   """
+
+  @typedoc "A LiveView module."
+  @type t() :: module()
+  @spec guarded_stages(module()) :: [
+          :handle_params | :handle_event | :handle_info | :after_render
+        ]
   def guarded_stages(live_view_module)
 end

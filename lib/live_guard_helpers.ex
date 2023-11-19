@@ -5,9 +5,11 @@ defmodule LiveGuard.Helpers do
 
   import Phoenix.LiveView, only: [put_flash: 3, redirect: 2]
 
+  alias Phoenix.LiveView.Socket
+
   @doc """
   This function handles unauthorized LiveView lifecycle stages.
-  It's called when the [`allowed?/4`](/LiveGuard.Allowed#allowed?/4) function returns `false`.
+  It's called when the [`allowed?/4`](/live_guard/LiveGuard.Allowed.html#allowed?/4) function returns `false`.
 
   By default it will put an error flash message with text "_You don't have permission to do that!_".
 
@@ -20,6 +22,8 @@ defmodule LiveGuard.Helpers do
   ```
   It's called with 2 inputs, first is a `socket`, second is `is_redirect` (boolean).
   """
+
+  @spec handle_unauthorized(Socket.t(), boolean()) :: Socket.t()
   def handle_unauthorized(socket, false = _is_redirect),
     do: put_flash(socket, :error, "You don't have permission to do that!")
 
