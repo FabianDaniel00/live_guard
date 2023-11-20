@@ -5,7 +5,7 @@ defmodule LiveGuard.MixProject do
     [
       app: :live_guard,
       description: "Protect LiveView lifecycle stages easily.",
-      version: "0.1.1",
+      version: "0.1.2",
       elixir: "~> 1.15.7",
       source_url: "https://github.com/FabianDaniel00/live_guard",
       homepage_url: "https://github.com/FabianDaniel00/live_guard",

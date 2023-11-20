@@ -110,7 +110,8 @@ For now you should ask, _okay but how it will know how to protect the LiveView l
 
 You need to implement [`allowed?/4`](/live_guard/LiveGuard.Allowed.html#allowed?/4) protocol functions.
 The first input of `allowed?/4` function is the **user**, the second is the **LiveView module**, the third is the **LiveView lifecycle stage** and the last is **LiveView lifecycle stage inputs**. In this way you can pattern match to your needings. You can put this file anywhere but `/lib/my_app_web/live/abilities.ex` is recommended.
-It must return boolean.
+
+**It must return boolean.**
 
 ```elixir
 # /lib/my_app_web/live/abilities.ex
@@ -149,7 +150,8 @@ end
 By default if you use the `on_mount/4` callback of LiveGuard, it will attach hooks to all attachable LiveView lifecycle stages (`:handle_params`, `:handle_event`, `:handle_info` and `:after_render`).
 If you need to protect for example only the `:handle_event` LiveView lifecycle stage for an individual LiveView module you can use this function.
 You can put this file anywhere but `/lib/my_app_web/live/guarded_stages.ex` is recommended.
-It must return a list of [valid attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4).
+
+**It must return a list of [valid attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4).**
 
 #### Example
 
