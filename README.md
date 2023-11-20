@@ -123,7 +123,7 @@ defimpl LiveGuard.Allowed, for: User do
         %User{role: role},
         MyModuleLive,
         :handle_event,
-        {"delete_item", _params, _socket}
+        {"delete_item", _unsigned_params, _socket}
       )
       when role in [:viewer, :customer],
       do: false
@@ -138,7 +138,7 @@ If the user is not authenticated you can add the following implementation as bel
 defimpl LiveGuard.Allowed, for: Atom do
   @before_compile {LiveGuard, :before_compile_allowed}
 
-  def allowed?(nil, MyModuleLive, :handle_event, {"delete_item", _params, _socket}),
+  def allowed?(nil, MyModuleLive, :handle_event, {"delete_item", _unsigned_params, _socket}),
     do: false
 
   # other `allowed?/4` functions...
