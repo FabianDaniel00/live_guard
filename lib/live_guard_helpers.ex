@@ -9,7 +9,7 @@ defmodule LiveGuard.Helpers do
 
   @doc """
   This function handles unauthorized LiveView lifecycle stages.
-  It's called when the [`allowed?/4`](/live_guard/LiveGuard.Allowed.html#allowed?/4) function returns `false`.
+  It's called when the [`allowed?/4`](https://hexdocs.pm/live_guard/LiveGuard.Allowed.html#allowed?/4) function returns `false`.
 
   By default it will put an error flash message with text "_You don't have permission to do that!_".
 
