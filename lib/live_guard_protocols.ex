@@ -3,13 +3,16 @@ defprotocol LiveGuard.Allowed do
   By this protocol you can implement `allowed?/4` functions.
   """
 
+  alias Phoenix.LiveView
+  alias LiveView.Socket
+
   @doc """
   By this function you can protect the LiveView lifecycle stages.
 
   You can pattern match by the **user**, **LiveView module**, **LiveView lifecycle stage** and **LiveView lifecycle stage inputs**.
   You can put this file anywhere but `/lib/my_app_web/live/abilities.ex` is recommended.
 
-  **It must return boolean.**
+  **It must return a boolean.**
 
   ## Example
 
@@ -31,7 +34,7 @@ defprotocol LiveGuard.Allowed do
     # other `allowed?/4` functions...
   end
   ```
-  > Note: As you can see, you don't have to define catch-all `allowed?/4` function because we used `@before_compile {LiveGuard, :before_compile_allowed}` hook. It returns `true`.
+  > Note: As you can see, you don't have to define catch-all `allowed?/4` function because we used `@before_compile {LiveGuard, :before_compile_allowed}` hook. It returns `true`. This is optional.
 
   If the user is not authenticated you can add the following implementation as below:
   ```elixir
@@ -51,8 +54,12 @@ defprotocol LiveGuard.Allowed do
   @spec allowed?(
           struct() | nil,
           module(),
-          :mount | :handle_params | :handle_event | :handle_info | :after_render,
-          tuple()
+          :mount | LiveGuard.attachable_lifecycle_stages(),
+          {LiveView.unsigned_params() | :not_mounted_at_router, map(), Socket.t()}
+          | {LiveView.unsigned_params(), String.t(), Socket.t()}
+          | {binary(), LiveView.unsigned_params(), Socket.t()}
+          | {term(), Socket.t()}
+          | {Socket.t()}
         ) :: boolean()
   def allowed?(user, live_view_module, stage, stage_inputs)
 end
@@ -90,13 +97,11 @@ defprotocol LiveGuard.GuardedStages do
   end
   ```
   In this case it will only attach hook to `:handle_event` LiveView lifecycle stage.
-  > Note: As you can see, you don't have to define catch-all `guarded_stages/1` function because we used `@before_compile {LiveGuard, :before_compile_guarded_stages}` hook. It returns all the attachable LiveView lifecycle stages.
+  > Note: As you can see, you don't have to define catch-all `guarded_stages/1` function because we used `@before_compile {LiveGuard, :before_compile_guarded_stages}` hook. It returns all the attachable LiveView lifecycle stages. This is optional.
   """
 
   @typedoc "A LiveView module."
   @type t() :: module()
-  @spec guarded_stages(module()) :: [
-          :handle_params | :handle_event | :handle_info | :after_render
-        ]
+  @spec guarded_stages(module()) :: [LiveGuard.attachable_lifecycle_stages()]
   def guarded_stages(live_view_module)
 end

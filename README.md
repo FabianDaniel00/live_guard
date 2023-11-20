@@ -111,7 +111,7 @@ For now you should ask, _okay but how it will know how to protect the LiveView l
 You need to implement [`allowed?/4`](https://hexdocs.pm/live_guard/LiveGuard.Allowed.html#allowed?/4) protocol functions.
 The first input of `allowed?/4` function is the **user**, the second is the **LiveView module**, the third is the **LiveView lifecycle stage** and the last is **LiveView lifecycle stage inputs**. In this way you can pattern match to your needings. You can put this file anywhere but `/lib/my_app_web/live/abilities.ex` is recommended.
 
-**It must return boolean.**
+**It must return a boolean.**
 
 ```elixir
 # /lib/my_app_web/live/abilities.ex
@@ -131,7 +131,7 @@ defimpl LiveGuard.Allowed, for: User do
   # other `allowed?/4` functions...
 end
 ```
-> Note: As you can see, you don't have to define catch-all `allowed?/4` function because we used `@before_compile {LiveGuard, :before_compile_allowed}` hook. It returns `true`.
+> Note: As you can see, you don't have to define catch-all `allowed?/4` function because we used `@before_compile {LiveGuard, :before_compile_allowed}` hook. It returns `true`. This is optional.
 
 If the user is not authenticated you can add the following implementation as below:
 ```elixir
@@ -167,7 +167,7 @@ defimpl LiveGuard.GuardedStages, for: Atom do
 end
 ```
 In this case it will only attach hook to `:handle_event` LiveView lifecycle stage.
-> Note: As you can see, you don't have to define catch-all `guarded_stages/1` function because we used `@before_compile {LiveGuard, :before_compile_guarded_stages}` hook. It returns all the valid attachable LiveView lifecycle stages.
+> Note: As you can see, you don't have to define catch-all `guarded_stages/1` function because we used `@before_compile {LiveGuard, :before_compile_guarded_stages}` hook. It returns all the valid attachable LiveView lifecycle stages. This is optional.
 
 ## License
 

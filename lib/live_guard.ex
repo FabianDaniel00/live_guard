@@ -5,6 +5,10 @@ defmodule LiveGuard do
   It uses the [`attach_hook/4`](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4) function to authorize all attachable LiveView lifecycle stages.
   """
 
+  @typedoc "All the [attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4)."
+  @type attachable_lifecycle_stages() ::
+          :handle_params | :handle_event | :handle_info | :after_render
+
   import Phoenix.LiveView, only: [attach_hook: 4]
   import LiveGuard.Allowed, only: [allowed?: 4]
   import LiveGuard.GuardedStages, only: [guarded_stages: 1]
@@ -49,8 +53,7 @@ defmodule LiveGuard do
             end
           )}) || {:halt, unauthorized_handler({socket, true})}
 
-  @spec hook_fn(:handle_params | :handle_event | :handle_info | :after_render) ::
-          (... -> {:cont | :halt, Socket.t()})
+  @spec hook_fn(attachable_lifecycle_stages()) :: (... -> {:cont | :halt, Socket.t()})
   defp hook_fn(:handle_params = stage),
     do: fn params, uri, socket ->
       (allowed?(
@@ -94,6 +97,8 @@ defmodule LiveGuard do
       |> apply(elem(@unauthorized_handler, 1), [socket, is_redirect])
 
   @doc """
+  #### _Optional_
+
   This macro can be used with [`@before_compile`](https://hexdocs.pm/elixir/Module.html#module-before_compile) hook.
 
   It will add a catch-all `allowed?/4` function returning `true`, to the end the module.
@@ -114,6 +119,8 @@ defmodule LiveGuard do
     do: quote(do: def(allowed?(_user, _live_view_module, _stage, _stage_inputs), do: true))
 
   @doc """
+  #### _Optional_
+
   This macro can be used with [`@before_compile`](https://hexdocs.pm/elixir/Module.html#module-before_compile) hook.
 
   It will add a catch-all `guarded_stages/1` function returning all the [valid attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4), to the end the module.
