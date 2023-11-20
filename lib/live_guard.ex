@@ -9,7 +9,7 @@ defmodule LiveGuard do
   import LiveGuard.Allowed, only: [allowed?: 4]
   import LiveGuard.GuardedStages, only: [guarded_stages: 1]
 
-  alias LiveGuard.{Helpers, GuardedStages}
+  alias LiveGuard.{Helpers, Allowed, GuardedStages}
   alias Phoenix.LiveView.Socket
 
   @attachable_lifecycle_stages [:handle_params, :handle_event, :handle_info, :after_render]
@@ -26,28 +26,26 @@ defmodule LiveGuard do
   """
 
   @spec on_mount(:default, map(), map(), Socket.t()) :: {:cont | :halt, Socket.t()}
-  def on_mount(:default, params, session, socket),
-    do:
-      (allowed?(
-         :erlang.map_get(@current_user, socket.assigns),
-         socket.view,
-         :mount,
-         {params, session, socket}
-       ) &&
-         {:cont,
-          Enum.reduce(
-            (GuardedStages.impl_for(:atom) && guarded_stages(socket.view)) ||
-              @attachable_lifecycle_stages,
-            socket,
-            fn stage, socket ->
-              attach_hook(
-                socket,
-                "live_guard_#{stage}",
-                stage,
-                hook_fn(stage)
-              )
-            end
-          )}) || {:halt, unauthorized_handler({socket, true})}
+  def on_mount(:default, params, session, socket) do
+    current_user = :erlang.map_get(@current_user, socket.assigns)
+    Allowed.impl_for!(current_user)
+
+    (allowed?(current_user, socket.view, :mount, {params, session, socket}) &&
+       {:cont,
+        Enum.reduce(
+          (GuardedStages.impl_for(:atom) && guarded_stages(socket.view)) ||
+            @attachable_lifecycle_stages,
+          socket,
+          fn stage, socket ->
+            attach_hook(
+              socket,
+              "live_guard_#{stage}",
+              stage,
+              hook_fn(stage)
+            )
+          end
+        )}) || {:halt, unauthorized_handler({socket, true})}
+  end
 
   @spec hook_fn(:handle_params | :handle_event | :handle_info | :after_render) ::
           (... -> {:cont | :halt, Socket.t()})
