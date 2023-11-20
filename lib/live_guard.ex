@@ -30,7 +30,12 @@ defmodule LiveGuard do
   You can find the documentation of `on_mount/1` [here](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#on_mount/1).
   """
 
-  @spec on_mount(:default, map(), map(), Socket.t()) :: {:cont | :halt, Socket.t()}
+  @spec on_mount(
+          on_mount_name :: :default,
+          params :: map(),
+          session :: map(),
+          socket :: Socket.t()
+        ) :: {:cont | :halt, Socket.t()}
   def on_mount(:default, params, session, socket),
     do:
       (allowed?(
@@ -54,7 +59,7 @@ defmodule LiveGuard do
             end
           )}) || {:halt, unauthorized_handler({socket, true})}
 
-  @spec hook_fn(:handle_params) ::
+  @spec hook_fn(stage :: :handle_params) ::
           (LiveView.unsigned_params(), String.t(), Socket.t() -> {:cont | :halt, Socket.t()})
   defp hook_fn(:handle_params = stage),
     do: fn params, uri, socket ->
@@ -67,7 +72,7 @@ defmodule LiveGuard do
          {:cont, socket}) || {:halt, unauthorized_handler({socket, true})}
     end
 
-  @spec hook_fn(:handle_event) ::
+  @spec hook_fn(stage :: :handle_event) ::
           (binary(), LiveView.unsigned_params(), Socket.t() -> {:cont | :halt, Socket.t()})
   defp hook_fn(:handle_event = stage),
     do: fn event, params, socket ->
@@ -80,14 +85,14 @@ defmodule LiveGuard do
          {:cont, socket}) || {:halt, unauthorized_handler({socket, false})}
     end
 
-  @spec hook_fn(:handle_info) :: (term(), Socket.t() -> {:cont | :halt, Socket.t()})
+  @spec hook_fn(stage :: :handle_info) :: (term(), Socket.t() -> {:cont | :halt, Socket.t()})
   defp hook_fn(:handle_info = stage),
     do: fn msg, socket ->
       (allowed?(:erlang.map_get(@current_user, socket.assigns), socket.view, stage, {msg, socket}) &&
          {:cont, socket}) || {:halt, unauthorized_handler({socket, false})}
     end
 
-  @spec hook_fn(:after_render) :: (Socket.t() -> Socket.t())
+  @spec hook_fn(stage :: :after_render) :: (Socket.t() -> Socket.t())
   defp hook_fn(:after_render = stage),
     do: fn socket ->
       (allowed?(:erlang.map_get(@current_user, socket.assigns), socket.view, stage, {socket}) &&
@@ -95,7 +100,7 @@ defmodule LiveGuard do
         unauthorized_handler({socket, true})
     end
 
-  @spec unauthorized_handler({Socket.t(), boolean()}) :: Socket.t()
+  @spec unauthorized_handler({socket :: Socket.t(), is_redirect :: boolean()}) :: Socket.t()
   defp unauthorized_handler({socket, is_redirect}),
     do:
       @unauthorized_handler
@@ -120,7 +125,7 @@ defmodule LiveGuard do
   ```
   """
 
-  @spec before_compile_allowed(map()) :: tuple()
+  @spec before_compile_allowed(env :: map()) :: tuple()
   defmacro before_compile_allowed(_env),
     do: quote(do: def(allowed?(_user, _live_view_module, _stage, _stage_inputs), do: true))
 
@@ -142,7 +147,7 @@ defmodule LiveGuard do
   ```
   """
 
-  @spec before_compile_guarded_stages(map()) :: tuple()
+  @spec before_compile_guarded_stages(env :: map()) :: tuple()
   defmacro before_compile_guarded_stages(_env),
     do:
       quote(do: def(guarded_stages(_live_view_module), do: unquote(@attachable_lifecycle_stages)))

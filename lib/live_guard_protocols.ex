@@ -52,25 +52,35 @@ defprotocol LiveGuard.Allowed do
   @typedoc "A user struct or nil when the user is not authenticated."
   @type t() :: struct() | nil
   @spec allowed?(
-          struct() | nil,
-          module(),
-          :mount,
-          {LiveView.unsigned_params() | :not_mounted_at_router, map(), Socket.t()}
+          user :: struct() | nil,
+          live_view_module :: module(),
+          stage :: :mount,
+          stage_inputs :: {LiveView.unsigned_params() | :not_mounted_at_router, map(), Socket.t()}
         ) :: boolean()
   @spec allowed?(
-          struct() | nil,
-          module(),
-          :handle_params,
-          {LiveView.unsigned_params(), String.t(), Socket.t()}
+          user :: struct() | nil,
+          live_view_module :: module(),
+          stage :: :handle_params,
+          stage_inputs :: {LiveView.unsigned_params(), String.t(), Socket.t()}
         ) :: boolean()
   @spec allowed?(
-          struct() | nil,
-          module(),
-          :handle_event,
-          {binary(), LiveView.unsigned_params(), Socket.t()}
+          user :: struct() | nil,
+          live_view_module :: module(),
+          stage :: :handle_event,
+          stage_inputs :: {binary(), LiveView.unsigned_params(), Socket.t()}
         ) :: boolean()
-  @spec allowed?(struct() | nil, module(), :handle_info, {term(), Socket.t()}) :: boolean()
-  @spec allowed?(struct() | nil, module(), :after_render, {Socket.t()}) :: boolean()
+  @spec allowed?(
+          user :: struct() | nil,
+          live_view_module :: module(),
+          stage :: :handle_info,
+          stage_inputs :: {term(), Socket.t()}
+        ) :: boolean()
+  @spec allowed?(
+          user :: struct() | nil,
+          live_view_module :: module(),
+          stage :: :after_render,
+          stage_inputs :: {Socket.t()}
+        ) :: boolean()
   def allowed?(user, live_view_module, stage, stage_inputs)
 end
 
@@ -112,6 +122,6 @@ defprotocol LiveGuard.GuardedStages do
 
   @typedoc "A LiveView module."
   @type t() :: module()
-  @spec guarded_stages(module()) :: [LiveGuard.attachable_lifecycle_stages()]
+  @spec guarded_stages(live_view_module :: module()) :: [LiveGuard.attachable_lifecycle_stages()]
   def guarded_stages(live_view_module)
 end
