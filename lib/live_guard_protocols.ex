@@ -54,13 +54,23 @@ defprotocol LiveGuard.Allowed do
   @spec allowed?(
           struct() | nil,
           module(),
-          :mount | LiveGuard.attachable_lifecycle_stages(),
+          :mount,
           {LiveView.unsigned_params() | :not_mounted_at_router, map(), Socket.t()}
-          | {LiveView.unsigned_params(), String.t(), Socket.t()}
-          | {binary(), LiveView.unsigned_params(), Socket.t()}
-          | {term(), Socket.t()}
-          | {Socket.t()}
         ) :: boolean()
+  @spec allowed?(
+          struct() | nil,
+          module(),
+          :handle_params,
+          {LiveView.unsigned_params(), String.t(), Socket.t()}
+        ) :: boolean()
+  @spec allowed?(
+          struct() | nil,
+          module(),
+          :handle_event,
+          {binary(), LiveView.unsigned_params(), Socket.t()}
+        ) :: boolean()
+  @spec allowed?(struct() | nil, module(), :handle_info, {term(), Socket.t()}) :: boolean()
+  @spec allowed?(struct() | nil, module(), :after_render, {Socket.t()}) :: boolean()
   def allowed?(user, live_view_module, stage, stage_inputs)
 end
 

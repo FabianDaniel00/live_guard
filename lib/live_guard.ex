@@ -14,7 +14,8 @@ defmodule LiveGuard do
   import LiveGuard.GuardedStages, only: [guarded_stages: 1]
 
   alias LiveGuard.{Helpers, GuardedStages}
-  alias Phoenix.LiveView.Socket
+  alias Phoenix.LiveView
+  alias LiveView.Socket
 
   @attachable_lifecycle_stages [:handle_params, :handle_event, :handle_info, :after_render]
 
@@ -53,7 +54,8 @@ defmodule LiveGuard do
             end
           )}) || {:halt, unauthorized_handler({socket, true})}
 
-  @spec hook_fn(attachable_lifecycle_stages()) :: (... -> {:cont | :halt, Socket.t()})
+  @spec hook_fn(:handle_params) ::
+          (LiveView.unsigned_params(), String.t(), Socket.t() -> {:cont | :halt, Socket.t()})
   defp hook_fn(:handle_params = stage),
     do: fn params, uri, socket ->
       (allowed?(
@@ -65,6 +67,8 @@ defmodule LiveGuard do
          {:cont, socket}) || {:halt, unauthorized_handler({socket, true})}
     end
 
+  @spec hook_fn(:handle_event) ::
+          (binary(), LiveView.unsigned_params(), Socket.t() -> {:cont | :halt, Socket.t()})
   defp hook_fn(:handle_event = stage),
     do: fn event, params, socket ->
       (allowed?(
@@ -76,12 +80,14 @@ defmodule LiveGuard do
          {:cont, socket}) || {:halt, unauthorized_handler({socket, false})}
     end
 
+  @spec hook_fn(:handle_info) :: (term(), Socket.t() -> {:cont | :halt, Socket.t()})
   defp hook_fn(:handle_info = stage),
     do: fn msg, socket ->
       (allowed?(:erlang.map_get(@current_user, socket.assigns), socket.view, stage, {msg, socket}) &&
          {:cont, socket}) || {:halt, unauthorized_handler({socket, false})}
     end
 
+  @spec hook_fn(:after_render) :: (Socket.t() -> Socket.t())
   defp hook_fn(:after_render = stage),
     do: fn socket ->
       (allowed?(:erlang.map_get(@current_user, socket.assigns), socket.view, stage, {socket}) &&
