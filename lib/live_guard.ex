@@ -27,10 +27,9 @@ defmodule LiveGuard do
 
   @spec on_mount(:default, map(), map(), Socket.t()) :: {:cont | :halt, Socket.t()}
   def on_mount(:default, params, session, socket) do
-    current_user = :erlang.map_get(@current_user, socket.assigns)
-    Allowed.impl_for!(current_user)
-
-    (allowed?(current_user, socket.view, :mount, {params, session, socket}) &&
+    (socket.assigns
+     |> get_current_user()
+     |> allowed?(socket.view, :mount, {params, session, socket}) &&
        {:cont,
         Enum.reduce(
           (GuardedStages.impl_for(:atom) && guarded_stages(socket.view)) ||
@@ -47,29 +46,39 @@ defmodule LiveGuard do
         )}) || {:halt, unauthorized_handler({socket, true})}
   end
 
+  @spec get_current_user(Socket.assigns()) :: struct() | nil
+  defp get_current_user(assigns) do
+    current_user = :erlang.map_get(@current_user, assigns)
+    # Allowed.impl_for!(current_user)
+
+    current_user
+  end
+
   @spec hook_fn(:handle_params | :handle_event | :handle_info | :after_render) ::
           (... -> {:cont | :halt, Socket.t()})
   defp hook_fn(:handle_params = stage),
     do: fn params, uri, socket ->
-      (allowed?(socket.assigns[@current_user], socket.view, stage, {params, uri, socket}) &&
+      (socket.assigns |> get_current_user() |> allowed?(socket.view, stage, {params, uri, socket}) &&
          {:cont, socket}) || {:halt, unauthorized_handler({socket, true})}
     end
 
   defp hook_fn(:handle_event = stage),
     do: fn event, params, socket ->
-      (allowed?(socket.assigns[@current_user], socket.view, stage, {event, params, socket}) &&
+      (socket.assigns
+       |> get_current_user()
+       |> allowed?(socket.view, stage, {event, params, socket}) &&
          {:cont, socket}) || {:halt, unauthorized_handler({socket, false})}
     end
 
   defp hook_fn(:handle_info = stage),
     do: fn msg, socket ->
-      (allowed?(socket.assigns[@current_user], socket.view, stage, {msg, socket}) &&
+      (socket.assigns |> get_current_user() |> allowed?(socket.view, stage, {msg, socket}) &&
          {:cont, socket}) || {:halt, unauthorized_handler({socket, false})}
     end
 
   defp hook_fn(:after_render = stage),
     do: fn socket ->
-      (allowed?(socket.assigns[@current_user], socket.view, stage, {socket}) && socket) ||
+      (socket.assigns |> get_current_user() |> allowed?(socket.view, stage, {socket}) && socket) ||
         unauthorized_handler({socket, true})
     end
 

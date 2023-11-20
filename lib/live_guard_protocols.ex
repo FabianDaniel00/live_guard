@@ -3,8 +3,6 @@ defprotocol LiveGuard.Allowed do
   By this protocol you can implement `allowed?/4` functions.
   """
 
-  @fallback_to_any true
-
   @doc """
   By this function you can protect the LiveView lifecycle stages.
 
