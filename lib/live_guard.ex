@@ -29,7 +29,7 @@ defmodule LiveGuard do
   def on_mount(:default, params, session, socket),
     do:
       (allowed?(
-         socket.assigns[@current_user],
+         :erlang.map_get(@current_user, socket.assigns),
          socket.view,
          :mount,
          {params, session, socket}
