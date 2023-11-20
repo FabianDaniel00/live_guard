@@ -32,7 +32,7 @@ defmodule LiveGuard do
 
   @spec on_mount(
           on_mount_name :: :default,
-          params :: map(),
+          params :: LiveView.unsigned_params() | :not_mounted_at_router,
           session :: map(),
           socket :: Socket.t()
         ) :: {:cont | :halt, socket :: Socket.t()}
