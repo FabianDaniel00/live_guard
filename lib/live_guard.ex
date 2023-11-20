@@ -9,7 +9,7 @@ defmodule LiveGuard do
   import LiveGuard.Allowed, only: [allowed?: 4]
   import LiveGuard.GuardedStages, only: [guarded_stages: 1]
 
-  alias LiveGuard.{Helpers, Allowed, GuardedStages}
+  alias LiveGuard.{Helpers, GuardedStages}
   alias Phoenix.LiveView.Socket
 
   @attachable_lifecycle_stages [:handle_params, :handle_event, :handle_info, :after_render]
@@ -26,59 +26,63 @@ defmodule LiveGuard do
   """
 
   @spec on_mount(:default, map(), map(), Socket.t()) :: {:cont | :halt, Socket.t()}
-  def on_mount(:default, params, session, socket) do
-    (socket.assigns
-     |> get_current_user()
-     |> allowed?(socket.view, :mount, {params, session, socket}) &&
-       {:cont,
-        Enum.reduce(
-          (GuardedStages.impl_for(:atom) && guarded_stages(socket.view)) ||
-            @attachable_lifecycle_stages,
-          socket,
-          fn stage, socket ->
-            attach_hook(
-              socket,
-              "live_guard_#{stage}",
-              stage,
-              hook_fn(stage)
-            )
-          end
-        )}) || {:halt, unauthorized_handler({socket, true})}
-  end
-
-  @spec get_current_user(Socket.assigns()) :: struct() | nil
-  defp get_current_user(assigns) do
-    current_user = :erlang.map_get(@current_user, assigns)
-    # Allowed.impl_for!(current_user)
-
-    current_user
-  end
+  def on_mount(:default, params, session, socket),
+    do:
+      (allowed?(
+         :erlang.map_get(@current_user, socket.assigns),
+         socket.view,
+         :mount,
+         {params, session, socket}
+       ) &&
+         {:cont,
+          Enum.reduce(
+            (GuardedStages.impl_for(:atom) && guarded_stages(socket.view)) ||
+              @attachable_lifecycle_stages,
+            socket,
+            fn stage, socket ->
+              attach_hook(
+                socket,
+                "live_guard_#{stage}",
+                stage,
+                hook_fn(stage)
+              )
+            end
+          )}) || {:halt, unauthorized_handler({socket, true})}
 
   @spec hook_fn(:handle_params | :handle_event | :handle_info | :after_render) ::
           (... -> {:cont | :halt, Socket.t()})
   defp hook_fn(:handle_params = stage),
     do: fn params, uri, socket ->
-      (socket.assigns |> get_current_user() |> allowed?(socket.view, stage, {params, uri, socket}) &&
+      (allowed?(
+         :erlang.map_get(@current_user, socket.assigns),
+         socket.view,
+         stage,
+         {params, uri, socket}
+       ) &&
          {:cont, socket}) || {:halt, unauthorized_handler({socket, true})}
     end
 
   defp hook_fn(:handle_event = stage),
     do: fn event, params, socket ->
-      (socket.assigns
-       |> get_current_user()
-       |> allowed?(socket.view, stage, {event, params, socket}) &&
+      (allowed?(
+         :erlang.map_get(@current_user, socket.assigns),
+         socket.view,
+         stage,
+         {event, params, socket}
+       ) &&
          {:cont, socket}) || {:halt, unauthorized_handler({socket, false})}
     end
 
   defp hook_fn(:handle_info = stage),
     do: fn msg, socket ->
-      (socket.assigns |> get_current_user() |> allowed?(socket.view, stage, {msg, socket}) &&
+      (allowed?(:erlang.map_get(@current_user, socket.assigns), socket.view, stage, {msg, socket}) &&
          {:cont, socket}) || {:halt, unauthorized_handler({socket, false})}
     end
 
   defp hook_fn(:after_render = stage),
     do: fn socket ->
-      (socket.assigns |> get_current_user() |> allowed?(socket.view, stage, {socket}) && socket) ||
+      (allowed?(:erlang.map_get(@current_user, socket.assigns), socket.view, stage, {socket}) &&
+         socket) ||
         unauthorized_handler({socket, true})
     end
 
