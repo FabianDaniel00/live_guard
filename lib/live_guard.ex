@@ -35,7 +35,7 @@ defmodule LiveGuard do
           params :: map(),
           session :: map(),
           socket :: Socket.t()
-        ) :: {:cont | :halt, Socket.t()}
+        ) :: {:cont | :halt, socket :: Socket.t()}
   def on_mount(:default, params, session, socket),
     do:
       (allowed?(
@@ -60,39 +60,46 @@ defmodule LiveGuard do
           )}) || {:halt, unauthorized_handler({socket, true})}
 
   @spec hook_fn(stage :: :handle_params) ::
-          (LiveView.unsigned_params(), String.t(), Socket.t() -> {:cont | :halt, Socket.t()})
+          (unsigned_params :: LiveView.unsigned_params(),
+           uri :: String.t(),
+           socket :: Socket.t() ->
+             {:cont | :halt, socket :: Socket.t()})
   defp hook_fn(:handle_params = stage),
-    do: fn params, uri, socket ->
+    do: fn unsigned_params, uri, socket ->
       (allowed?(
          :erlang.map_get(@current_user, socket.assigns),
          socket.view,
          stage,
-         {params, uri, socket}
+         {unsigned_params, uri, socket}
        ) &&
          {:cont, socket}) || {:halt, unauthorized_handler({socket, true})}
     end
 
   @spec hook_fn(stage :: :handle_event) ::
-          (binary(), LiveView.unsigned_params(), Socket.t() -> {:cont | :halt, Socket.t()})
+          (event :: binary(),
+           unsigned_params :: LiveView.unsigned_params(),
+           socket :: Socket.t() ->
+             {:cont | :halt, socket :: Socket.t()})
   defp hook_fn(:handle_event = stage),
-    do: fn event, params, socket ->
+    do: fn event, unsigned_params, socket ->
       (allowed?(
          :erlang.map_get(@current_user, socket.assigns),
          socket.view,
          stage,
-         {event, params, socket}
+         {event, unsigned_params, socket}
        ) &&
          {:cont, socket}) || {:halt, unauthorized_handler({socket, false})}
     end
 
-  @spec hook_fn(stage :: :handle_info) :: (term(), Socket.t() -> {:cont | :halt, Socket.t()})
+  @spec hook_fn(stage :: :handle_info) ::
+          (term(), socket :: Socket.t() -> {:cont | :halt, socket :: Socket.t()})
   defp hook_fn(:handle_info = stage),
     do: fn msg, socket ->
       (allowed?(:erlang.map_get(@current_user, socket.assigns), socket.view, stage, {msg, socket}) &&
          {:cont, socket}) || {:halt, unauthorized_handler({socket, false})}
     end
 
-  @spec hook_fn(stage :: :after_render) :: (Socket.t() -> Socket.t())
+  @spec hook_fn(stage :: :after_render) :: (socket :: Socket.t() -> socket :: Socket.t())
   defp hook_fn(:after_render = stage),
     do: fn socket ->
       (allowed?(:erlang.map_get(@current_user, socket.assigns), socket.view, stage, {socket}) &&

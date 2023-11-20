@@ -55,31 +55,37 @@ defprotocol LiveGuard.Allowed do
           user :: struct() | nil,
           live_view_module :: module(),
           stage :: :mount,
-          stage_inputs :: {LiveView.unsigned_params() | :not_mounted_at_router, map(), Socket.t()}
+          stage_inputs ::
+            {params :: LiveView.unsigned_params() | :not_mounted_at_router, session :: map(),
+             socket :: Socket.t()}
         ) :: boolean()
   @spec allowed?(
           user :: struct() | nil,
           live_view_module :: module(),
           stage :: :handle_params,
-          stage_inputs :: {LiveView.unsigned_params(), String.t(), Socket.t()}
+          stage_inputs ::
+            {unsigned_params :: LiveView.unsigned_params(), uri :: String.t(),
+             socket :: Socket.t()}
         ) :: boolean()
   @spec allowed?(
           user :: struct() | nil,
           live_view_module :: module(),
           stage :: :handle_event,
-          stage_inputs :: {binary(), LiveView.unsigned_params(), Socket.t()}
+          stage_inputs ::
+            {event :: binary(), unsigned_params :: LiveView.unsigned_params(),
+             socket :: Socket.t()}
         ) :: boolean()
   @spec allowed?(
           user :: struct() | nil,
           live_view_module :: module(),
           stage :: :handle_info,
-          stage_inputs :: {term(), Socket.t()}
+          stage_inputs :: {msg :: term(), socket :: Socket.t()}
         ) :: boolean()
   @spec allowed?(
           user :: struct() | nil,
           live_view_module :: module(),
           stage :: :after_render,
-          stage_inputs :: {Socket.t()}
+          stage_inputs :: {socket :: Socket.t()}
         ) :: boolean()
   def allowed?(user, live_view_module, stage, stage_inputs)
 end
