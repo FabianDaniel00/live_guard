@@ -1,12 +1,12 @@
 defprotocol LiveGuard.Allowed do
-  @moduledoc """
+  @moduledoc ~S"""
   By this protocol you can implement `allowed?/4` functions.
   """
 
   alias Phoenix.LiveView
   alias LiveView.Socket
 
-  @doc """
+  @doc ~S"""
   By this function you can protect the LiveView lifecycle stages.
 
   You can pattern match by the **user**, **LiveView module**, **LiveView lifecycle stage** and **LiveView lifecycle stage inputs**.
@@ -48,7 +48,6 @@ defprotocol LiveGuard.Allowed do
   end
   ```
   """
-
   @typedoc "A user struct or nil when the user is not authenticated."
   @type t() :: struct() | nil
   @spec allowed?(
@@ -81,33 +80,27 @@ defprotocol LiveGuard.Allowed do
           stage :: :handle_info,
           stage_inputs :: {msg :: term(), socket :: Socket.t()}
         ) :: boolean()
-  @spec allowed?(
-          user :: struct() | nil,
-          live_view_module :: module(),
-          stage :: :after_render,
-          stage_inputs :: {socket :: Socket.t()}
-        ) :: boolean()
   def allowed?(user, live_view_module, stage, stage_inputs)
 end
 
 defprotocol LiveGuard.GuardedStages do
-  @moduledoc """
+  @moduledoc ~S"""
   #### _Optional_
 
   By this protocol you can implement `guarded_stages/1` functions.
   """
 
-  @doc """
+  @doc ~S"""
   #### _Optional_
 
   This function is for optimization.
 
-  By default if you use the `on_mount/4` callback of LiveGuard, it will attach hooks to all attachable LiveView lifecycle stages (`:handle_params`, `:handle_event`, `:handle_info` and `:after_render`).
+  By default if you use the `on_mount/4` callback of LiveGuard, it will attach hooks to attachable LiveView lifecycle stages (`:handle_params`, `:handle_event` and `:handle_info`).
 
   If you need to protect for example only the `:handle_event` LiveView lifecycle stage for an individual LiveView module you can use this function.
   You can put this file anywhere but `/lib/my_app_web/live/guarded_stages.ex` is recommended.
 
-  **It must return a list of [valid attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4).**
+  **It must return a list of [valid attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4) (unless `:after_render`).**
 
   ## Example
 
@@ -123,9 +116,8 @@ defprotocol LiveGuard.GuardedStages do
   end
   ```
   In this case it will only attach hook to `:handle_event` LiveView lifecycle stage.
-  > Note: As you can see, you don't have to define catch-all `guarded_stages/1` function because we used `@before_compile {LiveGuard, :before_compile_guarded_stages}` hook. It returns all the attachable LiveView lifecycle stages. This is optional.
+  > Note: As you can see, you don't have to define catch-all `guarded_stages/1` function because we used `@before_compile {LiveGuard, :before_compile_guarded_stages}` hook. It returns the attachable LiveView lifecycle stages (`:handle_params`, `:handle_event` and `:handle_info`). This is optional.
   """
-
   @typedoc "A LiveView module."
   @type t() :: module()
   @spec guarded_stages(live_view_module :: module()) :: [LiveGuard.attachable_lifecycle_stages()]

@@ -1,45 +1,43 @@
 defmodule LiveGuard do
-  @moduledoc """
+  @moduledoc ~S"""
   A simple module with `on_mount/4` callback. This can used in [Phoenix LiveView](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#on_mount/1) applications.
   The main goal is to protect the Phoenix LiveView lifecycle stages easily.
-  It uses the [`attach_hook/4`](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4) function to authorize all attachable LiveView lifecycle stages.
+  It uses the [`attach_hook/4`](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4) function to authorize attachable LiveView lifecycle stages (`:handle_params`, `:handle_event` and `:handle_info`).
   """
 
-  @typedoc "All the [attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4)."
-  @type attachable_lifecycle_stages() ::
-          :handle_params | :handle_event | :handle_info | :after_render
+  @typedoc "The [attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4) (`:handle_params`, `:handle_event` and `:handle_info`)."
+  @type attachable_lifecycle_stages() :: :handle_params | :handle_event | :handle_info
 
   import Phoenix.LiveView, only: [attach_hook: 4]
   import LiveGuard.Allowed, only: [allowed?: 4]
   import LiveGuard.GuardedStages, only: [guarded_stages: 1]
+  import LiveGuard.Config
 
-  alias LiveGuard.{Helpers, GuardedStages}
+  alias LiveGuard.GuardedStages
   alias Phoenix.LiveView
   alias LiveView.Socket
 
-  @attachable_lifecycle_stages [:handle_params, :handle_event, :handle_info, :after_render]
+  @attachable_lifecycle_stages [:handle_params, :handle_event, :handle_info]
 
-  @current_user Application.compile_env(:live_guard, :current_user, :current_user)
-  @unauthorized_handler Application.compile_env(
-                          :live_guard,
-                          :unauthorized_handler,
-                          {Helpers, :handle_unauthorized}
-                        )
+  @doc ~S"""
+  All attachable LiveView lifecycle stages by LiveGuard.
+  """
+  @spec attachable_lifecycle_stages() :: [attachable_lifecycle_stages()]
+  def attachable_lifecycle_stages(), do: @attachable_lifecycle_stages
 
-  @doc """
+  @doc ~S"""
   You can find the documentation of `on_mount/1` [here](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#on_mount/1).
   """
-
   @spec on_mount(
           on_mount_name :: :default,
           params :: LiveView.unsigned_params() | :not_mounted_at_router,
           session :: map(),
           socket :: Socket.t()
         ) :: {:cont | :halt, socket :: Socket.t()}
-  def on_mount(:default, params, session, socket),
+  def on_mount(:default = _on_mount_name, params, session, socket),
     do:
       (allowed?(
-         :erlang.map_get(@current_user, socket.assigns),
+         :erlang.map_get(current_user(), socket.assigns),
          socket.view,
          :mount,
          {params, session, socket}
@@ -67,7 +65,7 @@ defmodule LiveGuard do
   defp hook_fn(:handle_params = stage),
     do: fn unsigned_params, uri, socket ->
       (allowed?(
-         :erlang.map_get(@current_user, socket.assigns),
+         :erlang.map_get(current_user(), socket.assigns),
          socket.view,
          stage,
          {unsigned_params, uri, socket}
@@ -83,7 +81,7 @@ defmodule LiveGuard do
   defp hook_fn(:handle_event = stage),
     do: fn event, unsigned_params, socket ->
       (allowed?(
-         :erlang.map_get(@current_user, socket.assigns),
+         :erlang.map_get(current_user(), socket.assigns),
          socket.view,
          stage,
          {event, unsigned_params, socket}
@@ -95,26 +93,23 @@ defmodule LiveGuard do
           (term(), socket :: Socket.t() -> {:cont | :halt, socket :: Socket.t()})
   defp hook_fn(:handle_info = stage),
     do: fn msg, socket ->
-      (allowed?(:erlang.map_get(@current_user, socket.assigns), socket.view, stage, {msg, socket}) &&
+      (allowed?(
+         :erlang.map_get(current_user(), socket.assigns),
+         socket.view,
+         stage,
+         {msg, socket}
+       ) &&
          {:cont, socket}) || {:halt, unauthorized_handler({socket, false})}
-    end
-
-  @spec hook_fn(stage :: :after_render) :: (socket :: Socket.t() -> socket :: Socket.t())
-  defp hook_fn(:after_render = stage),
-    do: fn socket ->
-      (allowed?(:erlang.map_get(@current_user, socket.assigns), socket.view, stage, {socket}) &&
-         socket) ||
-        unauthorized_handler({socket, true})
     end
 
   @spec unauthorized_handler({socket :: Socket.t(), is_redirect :: boolean()}) :: Socket.t()
   defp unauthorized_handler({socket, is_redirect}),
     do:
-      @unauthorized_handler
+      unauthorized_handler()
       |> elem(0)
-      |> apply(elem(@unauthorized_handler, 1), [socket, is_redirect])
+      |> apply(elem(unauthorized_handler(), 1), [socket, is_redirect])
 
-  @doc """
+  @doc ~S"""
   #### _Optional_
 
   This macro can be used with [`@before_compile`](https://hexdocs.pm/elixir/Module.html#module-before_compile) hook.
@@ -131,17 +126,16 @@ defmodule LiveGuard do
   end
   ```
   """
-
   @spec before_compile_allowed(env :: map()) :: tuple()
   defmacro before_compile_allowed(_env),
     do: quote(do: def(allowed?(_user, _live_view_module, _stage, _stage_inputs), do: true))
 
-  @doc """
+  @doc ~S"""
   #### _Optional_
 
   This macro can be used with [`@before_compile`](https://hexdocs.pm/elixir/Module.html#module-before_compile) hook.
 
-  It will add a catch-all `guarded_stages/1` function returning all the [valid attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4), to the end the module.
+  It will add a catch-all `guarded_stages/1` function returning the [valid attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4) (`:handle_params`, `:handle_event` and `:handle_info`), to the end the module.
 
   ## Example
 
@@ -153,7 +147,6 @@ defmodule LiveGuard do
   end
   ```
   """
-
   @spec before_compile_guarded_stages(env :: map()) :: tuple()
   defmacro before_compile_guarded_stages(_env),
     do:

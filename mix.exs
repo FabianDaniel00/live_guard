@@ -5,7 +5,7 @@ defmodule LiveGuard.MixProject do
     [
       app: :live_guard,
       description: "Protect LiveView lifecycle stages easily.",
-      version: "0.1.5",
+      version: "0.1.6",
       elixir: "~> 1.15.7",
       source_url: "https://github.com/FabianDaniel00/live_guard",
       homepage_url: "https://github.com/FabianDaniel00/live_guard",
@@ -23,8 +23,9 @@ defmodule LiveGuard.MixProject do
       consolidate_protocols: false,
       docs: [
         # The main page in the docs
-        main: "LiveGuard",
-        extras: ["README.md", "CHANGELOG.md"]
+        main: "readme",
+        extras: ["README.md", "CHANGELOG.md"],
+        extra_section: "GUIDES"
       ]
     ]
   end
@@ -32,6 +33,7 @@ defmodule LiveGuard.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
+      mod: {LiveGuardTestApplication, []},
       extra_applications: [:logger]
     ]
   end
@@ -40,7 +42,8 @@ defmodule LiveGuard.MixProject do
   defp deps do
     [
       {:phoenix_live_view, "~> 0.20.1"},
-      {:ex_doc, "~> 0.30.9", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.30.9", only: :dev, runtime: false},
+      {:floki, ">= 0.35.2", only: :test}
     ]
   end
 end

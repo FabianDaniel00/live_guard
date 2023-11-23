@@ -1,6 +1,6 @@
 # LiveGuard
 
-A simple package to protect the LiveView lifecycle stages such as `:mount`, `:handle_params`, `:handle_event`, `:handle_info` and `:after_render`.
+A simple package to protect the LiveView lifecycle stages such as `:mount`, `:handle_params`, `:handle_event` and `:handle_info`.
 
 ## Installation
 
@@ -16,7 +16,7 @@ For the latest release:
 ```elixir
 def deps do
   [
-    {:live_guard, "~> 0.1.5"}
+    {:live_guard, "~> 0.1.6"}
   ]
 end
 ```
@@ -26,7 +26,7 @@ Then run `mix deps.get` to fetch the dependencies.
 
 - `:current_user`
 
-  You need to assign the current user to the socket.
+  **You need to assign the current user to the socket before LiveGuard [`on_mount/4`](https://hexdocs.pm/live_guard/LiveGuard.html#on_mount/4) callback is called.**.
   The default assign name for the current user is `:current_user`.
   If you assign the current user as another than `:current_user` you can set in the config:
   ```elixir
@@ -40,7 +40,7 @@ Then run `mix deps.get` to fetch the dependencies.
 
   By default it will put an error flash message with text "_You don't have permission to do that!_".
 
-  `:mount`, `:handle_params` and `:after_render` LiveView lifecycle stages needs redirect after it detected as unauthorized.
+  `:mount` and `:handle_params` LiveView lifecycle stages needs redirect after it detected as unauthorized.
   In this case by default it will redirect to the home page (`/`).
 
   You can set a custom handler in the config:
@@ -147,11 +147,11 @@ end
 
 ### Optimization _(optional)_
 
-By default if you use the `on_mount/4` callback of LiveGuard, it will attach hooks to all attachable LiveView lifecycle stages (`:handle_params`, `:handle_event`, `:handle_info` and `:after_render`).
+By default if you use the `on_mount/4` callback of LiveGuard, it will attach hooks to attachable LiveView lifecycle stages (`:handle_params`, `:handle_event` and `:handle_info`).
 If you need to protect for example only the `:handle_event` LiveView lifecycle stage for an individual LiveView module you can use this function.
 You can put this file anywhere but `/lib/my_app_web/live/guarded_stages.ex` is recommended.
 
-**It must return a list of [valid attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4).**
+**It must return a list of [valid attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4) (unless `:after_render`).**
 
 #### Example
 
@@ -167,7 +167,7 @@ defimpl LiveGuard.GuardedStages, for: Atom do
 end
 ```
 In this case it will only attach hook to `:handle_event` LiveView lifecycle stage.
-> Note: As you can see, you don't have to define catch-all `guarded_stages/1` function because we used `@before_compile {LiveGuard, :before_compile_guarded_stages}` hook. It returns all the valid attachable LiveView lifecycle stages. This is optional.
+> Note: As you can see, you don't have to define catch-all `guarded_stages/1` function because we used `@before_compile {LiveGuard, :before_compile_guarded_stages}` hook. It returns the valid attachable LiveView lifecycle stages (`:handle_params`, `:handle_event` and `:handle_info`). This is optional.
 
 ## License
 
