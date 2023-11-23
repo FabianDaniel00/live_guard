@@ -1,0 +1,54 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Elixir CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Elixir
+      uses: erlef/setup-beam@1
+      with:
+        elixir-version: '1.15.7' # [Required] Define the Elixir version
+        otp-version: '26.0'      # [Required] Define the Erlang/OTP version
+    - name: Restore dependencies cache
+      id: elixir-deps-cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          **/deps
+        key: |
+          ${{ runner.os }}-elixir-deps-${{ hashFiles('**/mix.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-elixir-deps-
+    - name: Restore build cache
+      id: elixir-build-cache
+      uses: actions/cache@v2
+      with:
+        path: |
+          **/_build
+        key: |
+          ${{ runner.os }}-elixir-build-${{ hashFiles('**/mix.lock') }}-${{ hashFiles( '**/lib/**/*.{ex,eex}', '**/config/*.exs', '**/mix.exs' ) }}
+        restore-keys: |
+          ${{ runner.os }}-elixir-build-${{ hashFiles('**/mix.lock') }}-
+          ${{ runner.os }}-elixir-build-
+    - name: Install dependencies
+      run: mix deps.get
+    - name: Run tests
+      run: mix test
