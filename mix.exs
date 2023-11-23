@@ -14,7 +14,7 @@ defmodule LiveGuard.MixProject do
       package: [
         maintainers: ["Daniel Fabian"],
         files:
-          ~w(.github lib test .formatter.exs .gitignore CHANGELOG.md LICENSE mix.exs mix.lock README.md),
+          ~w(.github config lib test .formatter.exs .gitignore CHANGELOG.md LICENSE mix.exs mix.lock README.md),
         links: %{"GitHub" => "https://github.com/FabianDaniel00/live_guard"},
         licenses: ["MIT"]
       ],
