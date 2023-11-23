@@ -23,10 +23,10 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     - name: Set up Elixir
-      uses: erlef/setup-beam@1
+      uses: erlef/setup-beam@v1
       with:
-        elixir-version: '1.15.7' # [Required] Define the Elixir version
-        otp-version: '26.0'      # [Required] Define the Erlang/OTP version
+        elixir-version: '1.15.7'
+        otp-version: '26.0'
     - name: Restore dependencies cache
       id: elixir-deps-cache
       uses: actions/cache@v2
