@@ -16,7 +16,7 @@ For the latest release:
 ```elixir
 def deps do
   [
-    {:live_guard, "~> 0.1.6"}
+    {:live_guard, "~> 0.1.7"}
   ]
 end
 ```

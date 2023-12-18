@@ -13,7 +13,7 @@ defmodule LiveGuardTestApplication do
   @spec start(type :: term(), args :: term()) :: {:error, term()} | {:ok, pid()}
   def start(_type, _args),
     do:
-      Supervisor.start_link([LiveGuardTestEndpoint],
+      Supervisor.start_link((Mix.env() == :test && [LiveGuardTestEndpoint]) || [],
         strategy: :one_for_one,
         name: LiveGuardTestSupervisor
       )

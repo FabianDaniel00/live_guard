@@ -1,5 +1,5 @@
 defmodule LiveGuard.GuardedStagesTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
 
   alias LiveGuard.GuardedStages
 
