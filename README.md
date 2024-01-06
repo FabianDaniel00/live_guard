@@ -1,6 +1,6 @@
 # LiveGuard
 
-A simple package to protect the LiveView lifecycle stages such as `:mount`, `:handle_params`, `:handle_event` and `:handle_info`.
+A simple package to protect the LiveView lifecycle stages such as `:mount`, `:handle_params`, `:handle_event`, `:handle_info` and `:handle_async`.
 
 ## Installation
 
@@ -16,7 +16,7 @@ For the latest release:
 ```elixir
 def deps do
   [
-    {:live_guard, "~> 0.1.7"}
+    {:live_guard, "~> 0.1.8"}
   ]
 end
 ```
@@ -147,7 +147,7 @@ end
 
 ### Optimization _(optional)_
 
-By default if you use the `on_mount/4` callback of LiveGuard, it will attach hooks to attachable LiveView lifecycle stages (`:handle_params`, `:handle_event` and `:handle_info`).
+By default if you use the `on_mount/4` callback of LiveGuard, it will attach hooks to attachable LiveView lifecycle stages (`:handle_params`, `:handle_event`, `:handle_info` and `:handle_async`).
 If you need to protect for example only the `:handle_event` LiveView lifecycle stage for an individual LiveView module you can use this function.
 You can put this file anywhere but `/lib/my_app_web/live/guarded_stages.ex` is recommended.
 
@@ -167,7 +167,7 @@ defimpl LiveGuard.GuardedStages, for: Atom do
 end
 ```
 In this case it will only attach hook to `:handle_event` LiveView lifecycle stage.
-> Note: As you can see, you don't have to define catch-all `guarded_stages/1` function because we used `@before_compile {LiveGuard, :before_compile_guarded_stages}` hook. It returns the valid attachable LiveView lifecycle stages (`:handle_params`, `:handle_event` and `:handle_info`). This is optional.
+> Note: As you can see, you don't have to define catch-all `guarded_stages/1` function because we used `@before_compile {LiveGuard, :before_compile_guarded_stages}` hook. It returns the valid attachable LiveView lifecycle stages (`:handle_params`, `:handle_event`, `:handle_info` and `:handle_async`). This is optional.
 
 ## License
 

@@ -8,3 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.7] - 2023-12-18
 
 - Improved tests and fix warning on compile
+
+## [0.1.8] - 2024-01-06
+
+- Upgrade to [Phoenix LiveView](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html) v0.20.3
+  - Support [`:handle_async`](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#c:handle_async/3) LiveView lifecycle stage

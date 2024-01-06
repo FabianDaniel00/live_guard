@@ -38,7 +38,13 @@ defmodule LiveGuardTestLive do
   def handle_event("test-event", _unsigned_params, socket),
     do: {:noreply, assign(socket, :not_allowed, false)}
 
+  def handle_event("test-async", _unsigned_params, socket),
+    do: {:noreply, start_async(socket, :test_async, fn -> :test_async_result end)}
+
   def handle_info(:test_msg, socket),
+    do: {:noreply, assign(socket, :not_allowed, false)}
+
+  def handle_async(:test_async, {:ok, :test_async_result}, socket),
     do: {:noreply, assign(socket, :not_allowed, false)}
 end
 
@@ -75,6 +81,15 @@ defimpl LiveGuard.Allowed, for: LiveGuardTestUser do
         LiveGuardTestLive,
         :handle_info,
         {:test_msg, _socket}
+      )
+      when role in [:customer],
+      do: false
+
+  def allowed?(
+        %LiveGuardTestUser{role: role},
+        LiveGuardTestLive,
+        :handle_async,
+        {:test_async, {:ok, :test_async_result}, _socket}
       )
       when role in [:customer],
       do: false

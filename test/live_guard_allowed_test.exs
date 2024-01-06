@@ -43,9 +43,15 @@ defmodule LiveGuard.AllowedTest do
       assert render(view) =~ "Not allowed!"
 
       render_click(view, "change-user-role", %{"role" => :admin})
-      render_click(view, "clear-flash")
       send(view.pid, :test_msg)
       assert render(view) =~ "Allowed!"
+    end
+
+    test ":handle_async", %{live: {:ok, view, _html}} do
+      assert "Not allowed!" == render_click(view, "test-async")
+
+      render_click(view, "change-user-role", %{"role" => :admin})
+      assert "Allowed!" == render_click(view, "test-async")
     end
   end
 

@@ -80,6 +80,13 @@ defprotocol LiveGuard.Allowed do
           stage :: :handle_info,
           stage_inputs :: {msg :: term(), socket :: Socket.t()}
         ) :: boolean()
+  @spec allowed?(
+          user :: struct() | nil,
+          live_view_module :: module(),
+          stage :: :handle_async,
+          stage_inputs ::
+            {name :: atom(), async_fun_result :: {:ok | :exit, term()}, socket :: Socket.t()}
+        ) :: boolean()
   def allowed?(user, live_view_module, stage, stage_inputs)
 end
 
@@ -95,7 +102,7 @@ defprotocol LiveGuard.GuardedStages do
 
   This function is for optimization.
 
-  By default if you use the `on_mount/4` callback of LiveGuard, it will attach hooks to attachable LiveView lifecycle stages (`:handle_params`, `:handle_event` and `:handle_info`).
+  By default if you use the `on_mount/4` callback of LiveGuard, it will attach hooks to attachable LiveView lifecycle stages (`:handle_params`, `:handle_event`, `:handle_info` and `:handle_async`).
 
   If you need to protect for example only the `:handle_event` LiveView lifecycle stage for an individual LiveView module you can use this function.
   You can put this file anywhere but `/lib/my_app_web/live/guarded_stages.ex` is recommended.
@@ -116,7 +123,7 @@ defprotocol LiveGuard.GuardedStages do
   end
   ```
   In this case it will only attach hook to `:handle_event` LiveView lifecycle stage.
-  > Note: As you can see, you don't have to define catch-all `guarded_stages/1` function because we used `@before_compile {LiveGuard, :before_compile_guarded_stages}` hook. It returns the attachable LiveView lifecycle stages (`:handle_params`, `:handle_event` and `:handle_info`). This is optional.
+  > Note: As you can see, you don't have to define catch-all `guarded_stages/1` function because we used `@before_compile {LiveGuard, :before_compile_guarded_stages}` hook. It returns the attachable LiveView lifecycle stages (`:handle_params`, `:handle_event`, `:handle_info` and `:handle_async`). This is optional.
   """
   @typedoc "A LiveView module."
   @type t() :: module()

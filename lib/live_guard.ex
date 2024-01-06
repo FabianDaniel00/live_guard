@@ -2,11 +2,12 @@ defmodule LiveGuard do
   @moduledoc ~S"""
   A simple module with `on_mount/4` callback. This can used in [Phoenix LiveView](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#on_mount/1) applications.
   The main goal is to protect the Phoenix LiveView lifecycle stages easily.
-  It uses the [`attach_hook/4`](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4) function to authorize attachable LiveView lifecycle stages (`:handle_params`, `:handle_event` and `:handle_info`).
+  It uses the [`attach_hook/4`](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4) function to authorize attachable LiveView lifecycle stages (`:handle_params`, `:handle_event`, `:handle_info` and `:handle_async`).
   """
 
-  @typedoc "The [attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4) (`:handle_params`, `:handle_event` and `:handle_info`)."
-  @type attachable_lifecycle_stages() :: :handle_params | :handle_event | :handle_info
+  @typedoc "The [attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4) (`:handle_params`, `:handle_event`, `:handle_info` and `:handle_async`)."
+  @type attachable_lifecycle_stages() ::
+          :handle_params | :handle_event | :handle_info | :handle_async
 
   import Phoenix.LiveView, only: [attach_hook: 4]
   import LiveGuard.Allowed, only: [allowed?: 4]
@@ -17,7 +18,7 @@ defmodule LiveGuard do
   alias Phoenix.LiveView
   alias LiveView.Socket
 
-  @attachable_lifecycle_stages [:handle_params, :handle_event, :handle_info]
+  @attachable_lifecycle_stages [:handle_params, :handle_event, :handle_info, :handle_async]
 
   @doc ~S"""
   All attachable LiveView lifecycle stages by LiveGuard.
@@ -90,7 +91,7 @@ defmodule LiveGuard do
     end
 
   @spec hook_fn(stage :: :handle_info) ::
-          (term(), socket :: Socket.t() -> {:cont | :halt, socket :: Socket.t()})
+          (msg :: term(), socket :: Socket.t() -> {:cont | :halt, socket :: Socket.t()})
   defp hook_fn(:handle_info = stage),
     do: fn msg, socket ->
       (allowed?(
@@ -98,6 +99,20 @@ defmodule LiveGuard do
          socket.view,
          stage,
          {msg, socket}
+       ) &&
+         {:cont, socket}) || {:halt, unauthorized_handler({socket, false})}
+    end
+
+  @spec hook_fn(stage :: :handle_async) ::
+          (name :: atom(), async_fun_result :: {:ok | :exit, term()}, socket :: Socket.t() ->
+             {:cont | :halt, socket :: Socket.t()})
+  defp hook_fn(:handle_async = stage),
+    do: fn name, async_fun_result, socket ->
+      (allowed?(
+         :erlang.map_get(current_user(), socket.assigns),
+         socket.view,
+         stage,
+         {name, async_fun_result, socket}
        ) &&
          {:cont, socket}) || {:halt, unauthorized_handler({socket, false})}
     end
@@ -135,7 +150,7 @@ defmodule LiveGuard do
 
   This macro can be used with [`@before_compile`](https://hexdocs.pm/elixir/Module.html#module-before_compile) hook.
 
-  It will add a catch-all `guarded_stages/1` function returning the [valid attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4) (`:handle_params`, `:handle_event` and `:handle_info`), to the end the module.
+  It will add a catch-all `guarded_stages/1` function returning the [valid attachable LiveView lifecycle stages](https://hexdocs.pm/phoenix_live_view/Phoenix.LiveView.html#attach_hook/4) (`:handle_params`, `:handle_event`, `:handle_info` and `:handle_async`), to the end the module.
 
   ## Example
 

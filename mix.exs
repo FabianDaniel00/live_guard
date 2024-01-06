@@ -5,8 +5,8 @@ defmodule LiveGuard.MixProject do
     [
       app: :live_guard,
       description: "Protect LiveView lifecycle stages easily.",
-      version: "0.1.7",
-      elixir: "~> 1.15.7",
+      version: "0.1.8",
+      elixir: "~> 1.16.0",
       source_url: "https://github.com/FabianDaniel00/live_guard",
       homepage_url: "https://github.com/FabianDaniel00/live_guard",
       build_embedded: Mix.env() == :prod,
@@ -41,9 +41,9 @@ defmodule LiveGuard.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:phoenix_live_view, "~> 0.20.1"},
-      {:ex_doc, "~> 0.30.9", only: :dev, runtime: false},
-      {:floki, ">= 0.35.2", only: :test}
+      {:phoenix_live_view, "~> 0.20.3"},
+      {:ex_doc, "~> 0.31.0", only: :dev, runtime: false},
+      {:floki, "~> 0.35.2", only: :test}
     ]
   end
 end
